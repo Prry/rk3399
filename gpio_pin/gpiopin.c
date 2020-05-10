@@ -20,7 +20,6 @@
 #include <linux/of.h>
 #include <linux/of_gpio.h>
 #include <linux/of_address.h>
-#include "gpiopin.h"
 
 #define DEV_NAME	"gp0"		
 
