@@ -116,36 +116,36 @@ static int ssd1306_init(struct ssd1306_dev *pdev)
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x00);	/* set low column address */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x10);	/* set high column address */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x40);	/* set start line address */
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xB0);	//--set page address
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x81); // contract control
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xFF);	//--128   
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA1);//set segment remap 
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA6);//--normal / reverse
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA8);//--set multiplex ratio(1 to 64)
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x3F);//--1/32 duty
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xC8);//Com scan direction
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD3);//-set display offset
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xB0);	/* set page address */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x81); /* contract control */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xFF);	 
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA1); /* set segment remap */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA6); /* normal / reverse */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xA8); /* set multiplex ratio(1 to 64) */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x3F); /* 1/32 duty */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xC8); /* Com scan direction */
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD3); /* set display offset */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x00);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD5);//set osc division
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD5); /* set osc division */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x80);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD8);//set area color mode off
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD8); /* set area color mode off */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x05);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD9);//Set Pre-Charge Period
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xD9); /* Set Pre-Charge Period */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xF1);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xDA);//set com pin configuartion
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xDA); /* set com pin configuartion */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x12);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xDB);//set Vcomh
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xDB); /* set vcomh */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x30);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x8D);//set charge pump enable
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x8D); /* set charge pump enable */
 	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0x14);
 	
-	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xAF);//--turn on oled panel	
+	ssd1306_write_byte(pdev, SSD1306_WR_CMD, 0xAF); /* turn on oled panel */
 }
 
 
@@ -238,30 +238,30 @@ static int ssd1306_probe(struct i2c_client *client, const struct i2c_device_id *
 		return ret;
 	}
 
-	ssd1306_device.bm_id = id; 
-    cdev_init(&ssd1306_device.bm_cdev, &ssd1306_fops);
-	ret = cdev_add(&ssd1306_device.bm_cdev, ssd1306_device.bm_id, 1);
+	ssd1306_device.sd_id = id; 
+    cdev_init(&ssd1306_device.sd_cdev, &ssd1306_fops);
+	ret = cdev_add(&ssd1306_device.sd_cdev, ssd1306_device.sd_id, 1);
     if (ret)
     {
-    	unregister_chrdev_region(ssd1306.bm_id, 1);
+    	unregister_chrdev_region(ssd1306_device.sd_id, 1);
         return ret;
     }
 
-	ssd1306_device.bm_class = class_create(THIS_MODULE, "ssd1306_class");
-	if (IS_ERR(ssd1306_device.bm_class)) 
+	ssd1306_device.sd_class = class_create(THIS_MODULE, "ssd1306_class");
+	if (IS_ERR(ssd1306_device.sd_class)) 
 	{
 		printk("class_create failed.\n");
-		cdev_del(&ssd1306_device.bm_cdev);
+		cdev_del(&ssd1306_device.sd_cdev);
 		ret = -EIO;
 		return ret;
 	}
 
-	dev = device_create(ssd1306_device.bm_class, NULL, ssd1306_device.bm_id, NULL, SSD1306_DEV_NAME);
+	dev = device_create(ssd1306_device.sd_class, NULL, ssd1306_device.sd_id, NULL, SSD1306_DEV_NAME);
 	if (IS_ERR(dev))   
     {   
          return PTR_ERR(dev);    
     }
-	ssd1306_device.bm_i2c_client = client;
+	ssd1306_device.sd_i2c_client = client;
 
 	ssd1306_init(&ssd1306_device);
 	
@@ -270,10 +270,10 @@ static int ssd1306_probe(struct i2c_client *client, const struct i2c_device_id *
   
 static int ssd1306_remove(struct i2c_client *client)
 { 
-	device_destroy(ssd1306_device.bm_class, ssd1306_device.bm_id);
-    class_destroy(ssd1306_device.bm_class);
-    cdev_del(&ssd1306_device.bm_cdev);
-    unregister_chrdev_region(ssd1306_device.bm_id, 1);
+	device_destroy(ssd1306_device.sd_class, ssd1306_device.sd_id);
+    class_destroy(ssd1306_device.sd_class);
+    cdev_del(&ssd1306_device.sd_cdev);
+    unregister_chrdev_region(ssd1306_device.sd_id, 1);
 	
     return 0; 
 } 
