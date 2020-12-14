@@ -1,6 +1,6 @@
 ifeq ($(KERNELRELEASE),)
 
-#KERNELDIR = /usr/src/linux-headers-4.15.0-72-generic
+#KERNELDIR = /usr/src/linux-headers-4.15.0-123-generic
 #KERNELDIR = /opt/rk3399/linux/linux-kernel
 KERNELDIR = /opt/rk3399/linux-sdk/linux-sdk/kernel
 PWD := $(shell pwd)

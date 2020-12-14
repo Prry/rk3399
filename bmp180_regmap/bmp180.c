@@ -17,6 +17,7 @@
 #include <linux/version.h>
 #include <linux/delay.h> 
 #include <linux/i2c.h>
+#include <linux/regmap.h>
 #include "bmp180.h"
 
 #define BMP180_SLAVE_ADDR		0x77 
@@ -43,7 +44,7 @@ struct bmp180_dev
 	dev_t			bm_id;
 	struct class 	*bm_class;
 	struct i2c_client *bm_i2c_client;
-	struct regmap bm_regmap;
+	struct regmap *bm_regmap;
 };
 
 struct bmp180_calc
@@ -63,14 +64,28 @@ struct bmp180_calc
 struct bmp180_dev  bmp180_device;
 struct bmp180_calc bmp180_clac_parm = {0};  
 
+static bool bmp180_is_volatile_reg(struct device *dev, unsigned int reg);
+
 static const struct regmap_config bmp180_regmap_config =  
 {      
 	.reg_bits = 8,       
 	.val_bits = 8,         
 	.max_register = BMP_REG_AD_XLSB,       
 	.cache_type = REGCACHE_RBTREE,       
-	.volatile_reg = false, 
+	.volatile_reg = bmp180_is_volatile_reg, 
 };
+
+static bool bmp180_is_volatile_reg(struct device *dev, unsigned int reg)
+{
+	switch (reg) 
+	{
+		case BMP_REG_AD_MSB ... BMP_REG_AD_XLSB:
+		case BMP_REG_CTRL_TEMP:
+		return true;
+	}
+
+	return false;
+}
 
 static int bmp180_read_regs(struct bmp180_dev *pdev, uint8_t reg, uint8_t *pdata, int size)
 {
@@ -84,7 +99,15 @@ static int bmp180_write_regs(struct bmp180_dev *pdev, uint8_t reg, uint8_t *pdat
 
 static uint8_t bmp180_read_reg(struct bmp180_dev *pdev, uint8_t reg)
 {
-	return regmap_read(pdev->bm_regmap, pdev, reg);
+	int value = 0;
+	int ret = 0;
+	
+	ret = regmap_read(pdev->bm_regmap, reg, &value);
+	if (0 == ret)
+	{
+		return (uint8_t)value;
+	}
+	return 0;
 }
 
 static int8_t bmp180_write_reg(struct bmp180_dev *pdev, uint8_t reg, uint8_t data)
@@ -293,7 +316,7 @@ static int bmp180_remove(struct i2c_client *client)
     class_destroy(bmp180_device.bm_class);
     cdev_del(&bmp180_device.bm_cdev);
     unregister_chrdev_region(bmp180_device.bm_id, 1);
-	
+	regmap_exit(bmp180_device.bm_regmap);
     return 0; 
 } 
   
